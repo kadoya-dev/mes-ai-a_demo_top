@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        html { font-size: 18px; }
         :root {
             --bg-color: #f5f7fa;
             --card-bg: #ffffff;
@@ -16,21 +17,40 @@
             --day-active: #8db3f0;
         }
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); }
-        .dashboard-container { max-width: 1100px; margin: 0 auto; }
-        
+        .app-layout { display: flex; align-items: flex-start; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .menu-area {
+            width: 210px; background: var(--card-bg); border-radius: 12px; padding: 18px 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); position: sticky; top: 20px;
+        }
+        .menu-accordion summary { list-style: none; font-size: 0.82rem; color: var(--label-gray); font-weight: bold; letter-spacing: 0.08em; cursor: pointer; }
+        .menu-accordion summary::-webkit-details-marker { display: none; }
+        .menu-accordion summary::after { content: "＋"; float: right; color: var(--primary-blue); }
+        .menu-accordion[open] summary::after { content: "－"; }
+        .menu-items { margin-top: 10px; }
+        .menu-btn {
+            width: 100%; border: 1px solid #dbeafe; background: #eff6ff; color: var(--primary-blue);
+            border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; font-weight: bold; text-align: left;
+            cursor: pointer; margin-bottom: 8px;
+        }
+        .menu-btn:last-child { margin-bottom: 0; }
+        .menu-btn:hover { background: #dbeafe; }
+        .dashboard-container { max-width: 1100px; flex: 1; }
+
         /* TOPエリア */
         .top-control-row {
             background: var(--card-bg); border-radius: 12px; padding: 15px 25px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
-        .date-input-wrapper { display: flex; align-items: center; gap: 8px; }
+         .date-csv-group { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
+        .date-input-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
         .date-label { font-size: 0.75rem; font-weight: bold; margin-right: 5px; white-space: nowrap; }
         .date-field { border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; width: 110px; text-align: center; }
-        .btn-csv { background-color: var(--accent-green); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .date-range-separator { white-space: nowrap; }
+        .btn-csv { background-color: var(--accent-green); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 
         .piggy-bank-group { display: flex; gap: 15px; }
         .pig-item { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 8px 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 200px; }
-        .pig-img { width: 50px; height: 50px; object-fit: contain; }
+        .pig-img { width: 58px; height: 58px; object-fit: contain; }
         .pig-title { font-size: 0.8rem; color: var(--primary-blue); font-weight: bold; border-bottom: 2px solid #cbd5e1; margin-bottom: 4px; white-space: nowrap; }
         .pig-amount-val { font-size: 1rem; font-weight: 900; }
         .val-minus { color: var(--accent-red); }
@@ -42,7 +62,8 @@
             margin-bottom: 20px; display: flex; align-items: stretch; gap: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .status-checklist { display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 140px; }
-        .status-item { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+        .status-month-info { font-size: 1.05rem; font-weight: 800; color: var(--label-gray); margin-bottom: 3px; line-height: 1.1; }
+        .status-item { font-size: 0.78rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
         .status-item.done { color: var(--accent-green); }
         .status-item.done::before { content: '✅'; }
         .status-item.fail { color: var(--accent-red); }
@@ -50,10 +71,10 @@
 
         .comment-wrapper { flex: 1; display: flex; align-items: center; padding: 10px 20px; border-radius: 8px; gap: 15px; border-left: 5px solid; transition: all 0.3s; }
         .comment-text { font-size: 0.95rem; font-weight: bold; }
-        
+
         .btn-celebrate-circle {
-            width: 45px; height: 45px; border-radius: 50%; border: none; background: white; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 1.5rem; cursor: pointer; 
+            width: 45px; height: 45px; border-radius: 50%; border: none; background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 1.5rem; cursor: pointer;
             display: none; align-items: center; justify-content: center;
         }
 
@@ -61,19 +82,21 @@
         .btn-res-large { width: 100%; background: var(--primary-blue); color: white; border: none; padding: 12px 0; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #1e40af; }
 
         /* データ行 & カレンダーバー */
-        .section-row { background: var(--card-bg); border-radius: 12px; padding: 45px 20px 20px 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-        .row-label-group { position: absolute; top: 10px; left: 15px; display: flex; align-items: center; gap: 15px; width: calc(100% - 30px); }
-        .row-label { font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
-        
+        .section-row { background: var(--card-bg); border-radius: 12px; padding: 56px 20px 20px 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+        .row-label-group { position: absolute; top: 8px; left: 15px; display: flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px); }
+        .row-label { width: 96px; flex-shrink: 0; text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
+
         /* カレンダーバーのスタイル */
-        .calendar-bar { display: flex; gap: 2px; flex-grow: 1; }
-        .day-box { flex: 1; height: 18px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; background: var(--day-bg); color: #94a3b8; border-radius: 3px; font-weight: bold; }
+        .calendar-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; width: 100%; }
+        .calendar-bar { display: grid; grid-template-columns: repeat(31, 1.35rem); gap: 2px; width: 100%; justify-content: space-between; }
+        .day-box { height: 1.2rem; font-size: 0.72rem; display: flex; align-items: center; justify-content: center; background: var(--day-bg); color: #94a3b8; border-radius: 3px; font-weight: bold; }
         .day-box.active { background: var(--day-active); color: white; }
+        .day-box.invalid { background: #f1f5f9; color: #cbd5e1; }
 
         .achievement-area { display: flex; gap: 15px; align-items: center; width: 100%; }
         .ach-item { display: flex; align-items: center; gap: 12px; background: #fafbfc; padding: 12px 15px; border-radius: 12px; flex: 1; border: 1px solid #f1f5f9; }
-        
-        .chest-img { width: 65px; height: 65px; object-fit: contain; }
+
+        .chest-img { width: 82px; height: 82px; object-fit: contain; }
         .ach-details { line-height: 1.4; flex: 1; }
         .ach-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 2px; }
         .ach-title { font-size: 0.85rem; font-weight: bold; color: var(--primary-blue); }
@@ -83,22 +106,37 @@
         .ach-sub-val { font-size: 0.85rem; font-weight: bold; }
         .diff-text { font-size: 0.75rem; font-weight: bold; margin-left: auto; }
 
-        .sim-controller { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 5px; background: rgba(30,41,59,0.9); padding: 10px; border-radius: 12px; z-index: 1000; }
-        .sim-controller span { color: white; font-size: 0.7rem; font-weight: bold; text-align: center; margin-bottom: 5px; }
-        .btn-sim { background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; text-align: left; }
+        .sim-controller { position: fixed; left: 20px; bottom: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 5px; background: rgba(30,41,59,0.92); padding: 10px; border-radius: 10px; width: 210px; }
+        .sim-controller span { color: white; font-size: 0.8rem; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .btn-sim { background: #475569; color: white; border: none; padding: 7px 9px; border-radius: 6px; font-size: 0.76rem; cursor: pointer; transition: 0.2s; text-align: left; }
         .btn-sim:hover { background: var(--primary-blue); }
     </style>
 </head>
 <body>
+
+<div class="app-layout">
+    <nav class="menu-area" aria-label="メニュー">
+        <details class="menu-accordion">
+            <summary>MENU</summary>
+            <div class="menu-items">
+                <button class="menu-btn">TOP</button>
+                <button class="menu-btn">セラーリサーチ</button>
+                <button class="menu-btn">ASINリサーチ</button>
+                <button class="menu-btn">設定</button>
+                <button class="menu-btn">ログアウト</button>
+            </div>
+        </details>
+
+    </nav>
 
 <div class="dashboard-container">
     <div class="top-control-row">
         <div class="date-csv-group">
             <div class="date-input-wrapper">
                 <span class="date-label">出力対象期間</span>
-                <input type="text" id="current-date-field" class="date-field" value=""> <span>～</span> <input type="text" id="end-date-field" class="date-field" value="2026/02/30">
+                <input type="text" id="current-date-field" class="date-field" value=""> <span class="date-range-separator">～</span> <input type="text" id="end-date-field" class="date-field" value="2026/02/30">
             </div>
-            <button class="btn-csv" style="margin-left:15px;">CSV</button>
+            <button class="btn-csv">CSV</button>
         </div>
         <div class="piggy-bank-group">
             <div class="pig-item">
@@ -122,6 +160,7 @@
 
     <div class="action-center">
         <div class="status-checklist" id="checklist">
+            <div class="status-month-info" id="status-month-info">----</div>
             <div class="status-item fail" id="check-d">デイリー</div>
             <div class="status-item fail" id="check-w">ウィークリー</div>
             <div class="status-item fail" id="check-m">マンスリー</div>
@@ -141,6 +180,7 @@
 
     <div id="data-rows"></div>
 </div>
+</div>
 
 <div class="sim-controller">
     <span>パターン切替</span>
@@ -152,28 +192,35 @@
 
 <script>
     const dataRows = document.getElementById('data-rows');
-    
+
     // カレンダーバーのHTML生成
-    function generateCalendarBar(activeStart, activeEnd) {
-        let html = '<div class="calendar-bar">';
-        for (let i = 1; i <= 30; i++) {
-            const isActive = i >= activeStart && i <= activeEnd;
-            html += `<div class="day-box ${isActive ? 'active' : ''}">${i}</div>`;
+    function getDaysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    function generateCalendarBar(activeStart, activeEnd, year, month) {
+        const daysInMonth = getDaysInMonth(year, month);
+        let html = "<div class=\"calendar-bar\">";
+        for (let i = 1; i <= 31; i++) {
+            const isValidDay = i <= daysInMonth;
+            const isActive = isValidDay && i >= activeStart && i <= activeEnd;
+            const classNames = `day-box ${isValidDay ? "" : "invalid"} ${isActive ? "active" : ""}`.trim();
+            html += `<div class=\"${classNames}\">${i}</div>`;
         }
-        html += '</div>';
+        html += "</div>";
         return html;
     }
 
     function getComparisonBadge(val) {
         if (!val) return '';
         const isPlus = val.includes('+');
-        const bgColor = isPlus ? '#dcfce7' : '#fee2e2'; 
-        const textColor = isPlus ? '#166534' : '#991b1b'; 
+        const bgColor = isPlus ? '#dcfce7' : '#fee2e2';
+        const textColor = isPlus ? '#166534' : '#991b1b';
         const arrow = isPlus ? '▲' : '▼';
         return `<span class="comparison-badge" style="background:${bgColor}; color:${textColor}; font-size:0.65rem; padding:2px 6px; border-radius:8px; margin-right:8px; font-weight: bold;">${arrow} 前月比${val}</span>`;
     }
 
-    function createRow(period, activeStart, activeEnd, saleTarget, saleCurrent, profitTarget, profitCurrent, diffSale, diffProfit, isSaleDone, isProfitDone, mSaleDiff = null, mProfitDiff = null) {
+    function createRow(period, activeStart, activeEnd, saleTarget, saleCurrent, profitTarget, profitCurrent, diffSale, diffProfit, isSaleDone, isProfitDone, year, month, mSaleDiff = null, mProfitDiff = null) {
         const saleDiffText = isSaleDone ? `売上貯金 ＋¥${diffSale.toLocaleString()}` : `目標まであと -¥${diffSale.toLocaleString()}`;
         const profitDiffText = isProfitDone ? `利益貯金 ＋¥${diffProfit.toLocaleString()}` : `目標まであと -¥${diffProfit.toLocaleString()}`;
         const saleColor = isSaleDone ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -187,7 +234,9 @@
         <div class="section-row">
             <div class="row-label-group">
                 <div class="row-label">${period}</div>
-                ${generateCalendarBar(activeStart, activeEnd)}
+                <div class="calendar-stack">
+                    ${generateCalendarBar(activeStart, activeEnd, year, month)}
+                </div>
             </div>
             <div class="achievement-area">
                 <div class="ach-item">
@@ -222,8 +271,11 @@
         const btnParty = document.getElementById('btn-party');
         const saleGoalDay = 35000;
         const profitGoalDay = 10000;
-        
+
         let day, mSale, mProfit;
+        const year = 2026;
+        const month = 2;
+        document.getElementById('status-month-info').textContent = `${year}年${month}月`;
 
         if(pattern === 1) { // ① 1日
             day = 1; mSale = 0; mProfit = 0;
@@ -235,10 +287,10 @@
             document.getElementById('txt-main').textContent = "さあ、新しい月が始まりました！";
             document.getElementById('txt-sub').textContent = "リサーチを始めて、今月の利益商品を積み上げましょう。";
             btnParty.style.display = "none";
-            html += createRow("デイリー", 1, 1, 35000, 0, 10000, 0, 35000, 10000, false, false);
-            html += createRow("ウィークリー", 1, 7, 250000, 0, 75000, 0, 250000, 75000, false, false);
-            html += createRow("マンスリー", 1, 30, 1050000, 0, 300000, 0, 1050000, 300000, false, false, "-100%", "-100%");
-        } 
+            html += createRow("デイリー", 1, 1, 35000, 0, 10000, 0, 35000, 10000, false, false, year, month);
+            html += createRow("ウィークリー", 1, 7, 250000, 0, 75000, 0, 250000, 75000, false, false, year, month);
+            html += createRow("マンスリー", 1, 31, 1050000, 0, 300000, 0, 1050000, 300000, false, false, year, month, "-100%", "-100%");
+        }
         else if(pattern === 4) { // ④ 3日目
             day = 3; mSale = 45000; mProfit = 12000;
             document.getElementById('current-date-field').value = "2026/02/03";
@@ -249,9 +301,9 @@
             document.getElementById('txt-main').textContent = "デイリー達成！ナイス巻き返しです！🔥";
             document.getElementById('txt-sub').textContent = "この調子でリサーチを続け、貯金をプラスに戻しましょう。";
             btnParty.style.display = "none";
-            html += createRow("デイリー", 3, 3, 35000, 38000, 10000, 10500, 3000, 500, true, true);
-            html += createRow("ウィークリー", 1, 7, 250000, 45000, 75000, 12000, 205000, 63000, false, false);
-            html += createRow("マンスリー", 1, 30, 1050000, 45000, 300000, 12000, 1005000, 288000, false, false, "-25%", "-15%");
+            html += createRow("デイリー", 3, 3, 35000, 38000, 10000, 10500, 3000, 500, true, true, year, month);
+            html += createRow("ウィークリー", 1, 7, 250000, 45000, 75000, 12000, 205000, 63000, false, false, year, month);
+            html += createRow("マンスリー", 1, 31, 1050000, 45000, 300000, 12000, 1005000, 288000, false, false, year, month, "-25%", "-15%");
         }
         else if(pattern === 2) { // ② 15日目
             day = 15; mSale = 650000; mProfit = 180000;
@@ -263,9 +315,9 @@
             document.getElementById('txt-main').textContent = "ウィークリー達成！デイリーもあと少し🔥";
             document.getElementById('txt-sub').textContent = "この勢いでマンスリー目標へ向けてリサーチを強化しましょう。";
             btnParty.style.display = "none";
-            html += createRow("デイリー", 15, 15, 35000, 32000, 10000, 8500, 3000, 1500, false, false);
-            html += createRow("ウィークリー", 15, 21, 250000, 275000, 75000, 82000, 25000, 7000, true, true);
-            html += createRow("マンスリー", 1, 30, 1050000, 650000, 300000, 180000, 400000, 120000, false, false, "-6%", "+11%");
+            html += createRow("デイリー", 15, 15, 35000, 32000, 10000, 8500, 3000, 1500, false, false, year, month);
+            html += createRow("ウィークリー", 15, 21, 250000, 275000, 75000, 82000, 25000, 7000, true, true, year, month);
+            html += createRow("マンスリー", 1, 31, 1050000, 650000, 300000, 180000, 400000, 120000, false, false, year, month, "-6%", "+11%");
         }
         else if(pattern === 3) { // ③ 30日目
             day = 30; mSale = 1100000; mProfit = 320000;
@@ -277,9 +329,9 @@
             document.getElementById('txt-main').textContent = "マンスリー目標達成！おめでとうございます！🎉";
             document.getElementById('txt-sub').textContent = "最高の1ヶ月になりましたね！報酬を受け取ってリフレッシュしましょう。";
             btnParty.style.display = "flex";
-            html += createRow("デイリー", 30, 30, 35000, 36500, 10000, 11000, 1500, 1000, true, true);
-            html += createRow("ウィークリー", 22, 30, 250000, 260000, 75000, 78000, 10000, 3000, true, true);
-            html += createRow("マンスリー", 1, 30, 1050000, 1100000, 300000, 320000, 50000, 20000, true, true, "+12%", "+15%");
+            html += createRow("デイリー", 30, 30, 35000, 36500, 10000, 11000, 1500, 1000, true, true, year, month);
+            html += createRow("ウィークリー", 22, 30, 250000, 260000, 75000, 78000, 10000, 3000, true, true, year, month);
+            html += createRow("マンスリー", 1, 31, 1050000, 1100000, 300000, 320000, 50000, 20000, true, true, year, month, "+12%", "+15%");
         }
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
