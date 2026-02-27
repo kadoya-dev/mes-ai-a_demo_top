@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --primary-blue: #2563eb;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --text-main: #1e293b;
+            --label-gray: #64748b;
+            --day-bg: #e2e8f0;
+            --day-active: #8db3f0;
+        }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); }
+        .dashboard-container { max-width: 1100px; margin: 0 auto; }
+        
+        /* TOPエリア */
+        .top-control-row {
+            background: var(--card-bg); border-radius: 12px; padding: 15px 25px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .date-input-wrapper { display: flex; align-items: center; gap: 8px; }
+        .date-label { font-size: 0.75rem; font-weight: bold; margin-right: 5px; white-space: nowrap; }
+        .date-field { border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; width: 110px; text-align: center; }
+        .btn-csv { background-color: var(--accent-green); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        .piggy-bank-group { display: flex; gap: 15px; }
+        .pig-item { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 8px 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 200px; }
+        .pig-img { width: 50px; height: 50px; object-fit: contain; }
+        .pig-title { font-size: 0.8rem; color: var(--primary-blue); font-weight: bold; border-bottom: 2px solid #cbd5e1; margin-bottom: 4px; white-space: nowrap; }
+        .pig-amount-val { font-size: 1rem; font-weight: 900; }
+        .val-minus { color: var(--accent-red); }
+        .val-plus { color: var(--accent-green); }
+
+        /* アクションセンター */
+        .action-center {
+            background: #ffffff; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px 25px;
+            margin-bottom: 20px; display: flex; align-items: stretch; gap: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .status-checklist { display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 140px; }
+        .status-item { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+        .status-item.done { color: var(--accent-green); }
+        .status-item.done::before { content: '✅'; }
+        .status-item.fail { color: var(--accent-red); }
+        .status-item.fail::before { content: '🚫'; }
+
+        .comment-wrapper { flex: 1; display: flex; align-items: center; padding: 10px 20px; border-radius: 8px; gap: 15px; border-left: 5px solid; transition: all 0.3s; }
+        .comment-text { font-size: 0.95rem; font-weight: bold; }
+        
+        .btn-celebrate-circle {
+            width: 45px; height: 45px; border-radius: 50%; border: none; background: white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 1.5rem; cursor: pointer; 
+            display: none; align-items: center; justify-content: center;
+        }
+
+        .action-btns { display: flex; flex-direction: column; gap: 10px; min-width: 240px; justify-content: center; }
+        .btn-res-large { width: 100%; background: var(--primary-blue); color: white; border: none; padding: 12px 0; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #1e40af; }
+
+        /* データ行 & カレンダーバー */
+        .section-row { background: var(--card-bg); border-radius: 12px; padding: 45px 20px 20px 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+        .row-label-group { position: absolute; top: 10px; left: 15px; display: flex; align-items: center; gap: 15px; width: calc(100% - 30px); }
+        .row-label { font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
+        
+        /* カレンダーバーのスタイル */
+        .calendar-bar { display: flex; gap: 2px; flex-grow: 1; }
+        .day-box { flex: 1; height: 18px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; background: var(--day-bg); color: #94a3b8; border-radius: 3px; font-weight: bold; }
+        .day-box.active { background: var(--day-active); color: white; }
+
+        .achievement-area { display: flex; gap: 15px; align-items: center; width: 100%; }
+        .ach-item { display: flex; align-items: center; gap: 12px; background: #fafbfc; padding: 12px 15px; border-radius: 12px; flex: 1; border: 1px solid #f1f5f9; }
+        
+        .chest-img { width: 65px; height: 65px; object-fit: contain; }
+        .ach-details { line-height: 1.4; flex: 1; }
+        .ach-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; padding-bottom: 2px; }
+        .ach-title { font-size: 0.85rem; font-weight: bold; color: var(--primary-blue); }
+        .ach-pct-text { font-size: 1.4rem; font-weight: 900; }
+        .ach-val-row { display: flex; gap: 8px; align-items: baseline; }
+        .ach-sub-label { font-size: 0.7rem; color: var(--label-gray); font-weight: bold; min-width: 50px; }
+        .ach-sub-val { font-size: 0.85rem; font-weight: bold; }
+        .diff-text { font-size: 0.75rem; font-weight: bold; margin-left: auto; }
+
+        .sim-controller { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 5px; background: rgba(30,41,59,0.9); padding: 10px; border-radius: 12px; z-index: 1000; }
+        .sim-controller span { color: white; font-size: 0.7rem; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .btn-sim { background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; text-align: left; }
+        .btn-sim:hover { background: var(--primary-blue); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="top-control-row">
+        <div class="date-csv-group">
+            <div class="date-input-wrapper">
+                <span class="date-label">出力対象期間</span>
+                <input type="text" id="current-date-field" class="date-field" value=""> <span>～</span> <input type="text" id="end-date-field" class="date-field" value="2026/02/30">
+            </div>
+            <button class="btn-csv" style="margin-left:15px;">CSV</button>
+        </div>
+        <div class="piggy-bank-group">
+            <div class="pig-item">
+                <img src="貯金.png" class="pig-img">
+                <div class="pig-text">
+                    <div class="pig-title">今月の売上貯金</div>
+                    <span style="font-size:0.7rem; color:var(--label-gray); font-weight:bold;">貯金額</span>
+                    <span class="pig-amount-val" id="val-pig-sale">0円</span>
+                </div>
+            </div>
+            <div class="pig-item">
+                <img src="貯金.png" class="pig-img">
+                <div class="pig-text">
+                    <div class="pig-title">今月の利益貯金</div>
+                    <span style="font-size:0.7rem; color:var(--label-gray); font-weight:bold;">貯金額</span>
+                    <span class="pig-amount-val" id="val-pig-profit">0円</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-center">
+        <div class="status-checklist" id="checklist">
+            <div class="status-item fail" id="check-d">デイリー</div>
+            <div class="status-item fail" id="check-w">ウィークリー</div>
+            <div class="status-item fail" id="check-m">マンスリー</div>
+        </div>
+        <div class="comment-wrapper" id="comment-box">
+            <div class="comment-content">
+                <div class="comment-text" id="txt-main">---</div>
+                <div class="comment-sub" id="txt-sub">---</div>
+            </div>
+            <button class="btn-celebrate-circle" id="btn-party" onclick="celebrate()">🎉</button>
+        </div>
+        <div class="action-btns">
+            <button class="btn-res-large">🔎セラーリサーチへGO</button>
+            <button class="btn-res-large" style="margin-top:10px;">🛒ASINリサーチへGO</button>
+        </div>
+    </div>
+
+    <div id="data-rows"></div>
+</div>
+
+<div class="sim-controller">
+    <span>パターン切替</span>
+    <button class="btn-sim" onclick="updateView(1)">① 月始 1日 (全未達)</button>
+    <button class="btn-sim" onclick="updateView(4)">④ 月初 3日目 (デイリー達成)</button>
+    <button class="btn-sim" onclick="updateView(2)">② 月半ば 15日 (W達成)</button>
+    <button class="btn-sim" onclick="updateView(3)">③ 月末 30日 (全達成)</button>
+</div>
+
+<script>
+    const dataRows = document.getElementById('data-rows');
+    
+    // カレンダーバーのHTML生成
+    function generateCalendarBar(activeStart, activeEnd) {
+        let html = '<div class="calendar-bar">';
+        for (let i = 1; i <= 30; i++) {
+            const isActive = i >= activeStart && i <= activeEnd;
+            html += `<div class="day-box ${isActive ? 'active' : ''}">${i}</div>`;
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function getComparisonBadge(val) {
+        if (!val) return '';
+        const isPlus = val.includes('+');
+        const bgColor = isPlus ? '#dcfce7' : '#fee2e2'; 
+        const textColor = isPlus ? '#166534' : '#991b1b'; 
+        const arrow = isPlus ? '▲' : '▼';
+        return `<span class="comparison-badge" style="background:${bgColor}; color:${textColor}; font-size:0.65rem; padding:2px 6px; border-radius:8px; margin-right:8px; font-weight: bold;">${arrow} 前月比${val}</span>`;
+    }
+
+    function createRow(period, activeStart, activeEnd, saleTarget, saleCurrent, profitTarget, profitCurrent, diffSale, diffProfit, isSaleDone, isProfitDone, mSaleDiff = null, mProfitDiff = null) {
+        const saleDiffText = isSaleDone ? `売上貯金 ＋¥${diffSale.toLocaleString()}` : `目標まであと -¥${diffSale.toLocaleString()}`;
+        const profitDiffText = isProfitDone ? `利益貯金 ＋¥${diffProfit.toLocaleString()}` : `目標まであと -¥${diffProfit.toLocaleString()}`;
+        const saleColor = isSaleDone ? 'var(--accent-green)' : 'var(--accent-red)';
+        const profitColor = isProfitDone ? 'var(--accent-green)' : 'var(--accent-red)';
+        const salePct = Math.floor(saleCurrent/saleTarget*100);
+        const profitPct = Math.floor(profitCurrent/profitTarget*100);
+        const saleImg = isSaleDone ? 'まんたん.png' : (salePct > 50 ? 'そこそこ.png' : 'からっぽ.png');
+        const profitImg = isProfitDone ? 'まんたん.png' : (profitPct > 50 ? 'そこそこ.png' : 'からっぽ.png');
+
+        return `
+        <div class="section-row">
+            <div class="row-label-group">
+                <div class="row-label">${period}</div>
+                ${generateCalendarBar(activeStart, activeEnd)}
+            </div>
+            <div class="achievement-area">
+                <div class="ach-item">
+                    <img src="${saleImg}" class="chest-img">
+                    <div class="ach-details">
+                        <div class="ach-header">
+                            <span class="ach-title">Ｔ売上達成率</span>
+                            <div style="display:flex; align-items:center;">${getComparisonBadge(mSaleDiff)}<span class="ach-pct-text" style="color:${saleColor}">${salePct}%</span></div>
+                        </div>
+                        <div class="ach-val-row"><span class="ach-sub-label">目標金額</span><span class="ach-sub-val">¥${saleTarget.toLocaleString()}</span></div>
+                        <div class="ach-val-row"><span class="ach-sub-label">現状金額</span><span class="ach-sub-val">¥${saleCurrent.toLocaleString()}</span><span class="diff-text" style="color:${saleColor}">${saleDiffText}</span></div>
+                    </div>
+                </div>
+                <div class="ach-item">
+                    <img src="${profitImg}" class="chest-img">
+                    <div class="ach-details">
+                        <div class="ach-header">
+                            <span class="ach-title">Ｔ利益達成率</span>
+                            <div style="display:flex; align-items:center;">${getComparisonBadge(mProfitDiff)}<span class="ach-pct-text" style="color:${profitColor}">${profitPct}%</span></div>
+                        </div>
+                        <div class="ach-val-row"><span class="ach-sub-label">目標金額</span><span class="ach-sub-val">¥${profitTarget.toLocaleString()}</span></div>
+                        <div class="ach-val-row"><span class="ach-sub-label">現状金額</span><span class="ach-sub-val">¥${profitCurrent.toLocaleString()}</span><span class="diff-text" style="color:${profitColor}">${profitDiffText}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function updateView(pattern) {
+        let html = "";
+        const commentBox = document.getElementById('comment-box');
+        const btnParty = document.getElementById('btn-party');
+        const saleGoalDay = 35000;
+        const profitGoalDay = 10000;
+        
+        let day, mSale, mProfit;
+
+        if(pattern === 1) { // ① 1日
+            day = 1; mSale = 0; mProfit = 0;
+            document.getElementById('current-date-field').value = "2026/02/01";
+            document.getElementById('check-d').className = "status-item fail";
+            document.getElementById('check-w').className = "status-item fail";
+            document.getElementById('check-m').className = "status-item fail";
+            commentBox.style.background = "#f0f9ff"; commentBox.style.borderColor = "var(--primary-blue)";
+            document.getElementById('txt-main').textContent = "さあ、新しい月が始まりました！";
+            document.getElementById('txt-sub').textContent = "リサーチを始めて、今月の利益商品を積み上げましょう。";
+            btnParty.style.display = "none";
+            html += createRow("デイリー", 1, 1, 35000, 0, 10000, 0, 35000, 10000, false, false);
+            html += createRow("ウィークリー", 1, 7, 250000, 0, 75000, 0, 250000, 75000, false, false);
+            html += createRow("マンスリー", 1, 30, 1050000, 0, 300000, 0, 1050000, 300000, false, false, "-100%", "-100%");
+        } 
+        else if(pattern === 4) { // ④ 3日目
+            day = 3; mSale = 45000; mProfit = 12000;
+            document.getElementById('current-date-field').value = "2026/02/03";
+            document.getElementById('check-d').className = "status-item done";
+            document.getElementById('check-w').className = "status-item fail";
+            document.getElementById('check-m').className = "status-item fail";
+            commentBox.style.background = "#fff1f2"; commentBox.style.borderColor = "var(--accent-red)";
+            document.getElementById('txt-main').textContent = "デイリー達成！ナイス巻き返しです！🔥";
+            document.getElementById('txt-sub').textContent = "この調子でリサーチを続け、貯金をプラスに戻しましょう。";
+            btnParty.style.display = "none";
+            html += createRow("デイリー", 3, 3, 35000, 38000, 10000, 10500, 3000, 500, true, true);
+            html += createRow("ウィークリー", 1, 7, 250000, 45000, 75000, 12000, 205000, 63000, false, false);
+            html += createRow("マンスリー", 1, 30, 1050000, 45000, 300000, 12000, 1005000, 288000, false, false, "-25%", "-15%");
+        }
+        else if(pattern === 2) { // ② 15日目
+            day = 15; mSale = 650000; mProfit = 180000;
+            document.getElementById('current-date-field').value = "2026/02/15";
+            document.getElementById('check-d').className = "status-item fail";
+            document.getElementById('check-w').className = "status-item done";
+            document.getElementById('check-m').className = "status-item fail";
+            commentBox.style.background = "#fff1f2"; commentBox.style.borderColor = "var(--accent-red)";
+            document.getElementById('txt-main').textContent = "ウィークリー達成！デイリーもあと少し🔥";
+            document.getElementById('txt-sub').textContent = "この勢いでマンスリー目標へ向けてリサーチを強化しましょう。";
+            btnParty.style.display = "none";
+            html += createRow("デイリー", 15, 15, 35000, 32000, 10000, 8500, 3000, 1500, false, false);
+            html += createRow("ウィークリー", 15, 21, 250000, 275000, 75000, 82000, 25000, 7000, true, true);
+            html += createRow("マンスリー", 1, 30, 1050000, 650000, 300000, 180000, 400000, 120000, false, false, "-6%", "+11%");
+        }
+        else if(pattern === 3) { // ③ 30日目
+            day = 30; mSale = 1100000; mProfit = 320000;
+            document.getElementById('current-date-field').value = "2026/02/30";
+            document.getElementById('check-d').className = "status-item done";
+            document.getElementById('check-w').className = "status-item done";
+            document.getElementById('check-m').className = "status-item done";
+            commentBox.style.background = "#dcfce7"; commentBox.style.borderColor = "var(--accent-green)";
+            document.getElementById('txt-main').textContent = "マンスリー目標達成！おめでとうございます！🎉";
+            document.getElementById('txt-sub').textContent = "最高の1ヶ月になりましたね！報酬を受け取ってリフレッシュしましょう。";
+            btnParty.style.display = "flex";
+            html += createRow("デイリー", 30, 30, 35000, 36500, 10000, 11000, 1500, 1000, true, true);
+            html += createRow("ウィークリー", 22, 30, 250000, 260000, 75000, 78000, 10000, 3000, true, true);
+            html += createRow("マンスリー", 1, 30, 1050000, 1100000, 300000, 320000, 50000, 20000, true, true, "+12%", "+15%");
+        }
+
+        updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
+        updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
+        dataRows.innerHTML = html;
+    }
+
+    function updatePigDisplay(id, amount) {
+        const el = document.getElementById(id);
+        if(amount < 0) {
+            el.textContent = `－${Math.abs(amount).toLocaleString()}円`;
+            el.className = "pig-amount-val val-minus";
+        } else {
+            el.textContent = `${amount.toLocaleString()}円`;
+            el.className = "pig-amount-val val-plus";
+        }
+    }
+
+    function celebrate() {
+        var end = Date.now() + (3 * 1000);
+        (function frame() {
+            confetti({ particleCount: 7, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#10b981', '#fbbf24', '#3b82f6'] });
+            confetti({ particleCount: 7, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#10b981', '#fbbf24', '#3b82f6'] });
+            if (Date.now() < end) { requestAnimationFrame(frame); }
+        }());
+    }
+
+    updateView(1);
+</script>
+
+</body>
+</html>
