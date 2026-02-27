@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        html { font-size: 18px; }
         :root {
             --bg-color: #f5f7fa;
             --card-bg: #ffffff;
@@ -61,7 +62,7 @@
             margin-bottom: 20px; display: flex; align-items: stretch; gap: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .status-checklist { display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 140px; }
-        .status-month-info { font-size: 0.74rem; font-weight: bold; color: var(--label-gray); margin-bottom: 2px; }
+        .status-month-info { font-size: 1.45rem; font-weight: 900; color: var(--label-gray); margin-bottom: 4px; line-height: 1.1; }
         .status-item { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
         .status-item.done { color: var(--accent-green); }
         .status-item.done::before { content: '✅'; }
@@ -86,9 +87,9 @@
         .row-label { font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
 
         /* カレンダーバーのスタイル */
-        .calendar-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .calendar-bar { display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 2px; width: 100%; }
-        .day-box { height: 18px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; background: var(--day-bg); color: #94a3b8; border-radius: 3px; font-weight: bold; }
+        .calendar-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; width: 100%; }
+        .calendar-bar { display: grid; grid-template-columns: repeat(31, 1.35rem); gap: 2px; width: 100%; justify-content: space-between; }
+        .day-box { height: 1.2rem; font-size: 0.72rem; display: flex; align-items: center; justify-content: center; background: var(--day-bg); color: #94a3b8; border-radius: 3px; font-weight: bold; }
         .day-box.active { background: var(--day-active); color: white; }
         .day-box.invalid { background: #f1f5f9; color: #cbd5e1; }
 
@@ -105,9 +106,9 @@
         .ach-sub-val { font-size: 0.85rem; font-weight: bold; }
         .diff-text { font-size: 0.75rem; font-weight: bold; margin-left: auto; }
 
-        .sim-controller { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; background: rgba(30,41,59,0.92); padding: 10px; border-radius: 10px; }
-        .sim-controller span { color: white; font-size: 0.7rem; font-weight: bold; text-align: center; margin-bottom: 5px; }
-        .btn-sim { background: #475569; color: white; border: none; padding: 6px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; transition: 0.2s; text-align: left; }
+        .sim-controller { position: fixed; left: 20px; bottom: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 5px; background: rgba(30,41,59,0.92); padding: 10px; border-radius: 10px; width: 210px; }
+        .sim-controller span { color: white; font-size: 0.8rem; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .btn-sim { background: #475569; color: white; border: none; padding: 7px 9px; border-radius: 6px; font-size: 0.76rem; cursor: pointer; transition: 0.2s; text-align: left; }
         .btn-sim:hover { background: var(--primary-blue); }
     </style>
 </head>
@@ -126,13 +127,6 @@
             </div>
         </details>
 
-        <div class="sim-controller">
-            <span>パターン切替</span>
-            <button class="btn-sim" onclick="updateView(1)">① 月始 1日 (全未達)</button>
-            <button class="btn-sim" onclick="updateView(4)">④ 月初 3日目 (デイリー達成)</button>
-            <button class="btn-sim" onclick="updateView(2)">② 月半ば 15日 (W達成)</button>
-            <button class="btn-sim" onclick="updateView(3)">③ 月末 30日 (全達成)</button>
-        </div>
     </nav>
 
 <div class="dashboard-container">
@@ -186,6 +180,14 @@
 
     <div id="data-rows"></div>
 </div>
+</div>
+
+<div class="sim-controller">
+    <span>パターン切替</span>
+    <button class="btn-sim" onclick="updateView(1)">① 月始 1日 (全未達)</button>
+    <button class="btn-sim" onclick="updateView(4)">④ 月初 3日目 (デイリー達成)</button>
+    <button class="btn-sim" onclick="updateView(2)">② 月半ば 15日 (W達成)</button>
+    <button class="btn-sim" onclick="updateView(3)">③ 月末 30日 (全達成)</button>
 </div>
 
 <script>
