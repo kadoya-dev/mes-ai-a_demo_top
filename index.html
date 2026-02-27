@@ -62,8 +62,8 @@
             margin-bottom: 20px; display: flex; align-items: stretch; gap: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .status-checklist { display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 140px; }
-        .status-month-info { font-size: 1.45rem; font-weight: 900; color: var(--label-gray); margin-bottom: 4px; line-height: 1.1; }
-        .status-item { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+        .status-month-info { font-size: 1.05rem; font-weight: 800; color: var(--label-gray); margin-bottom: 3px; line-height: 1.1; }
+        .status-item { font-size: 0.78rem; font-weight: bold; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
         .status-item.done { color: var(--accent-green); }
         .status-item.done::before { content: '✅'; }
         .status-item.fail { color: var(--accent-red); }
@@ -84,7 +84,7 @@
         /* データ行 & カレンダーバー */
         .section-row { background: var(--card-bg); border-radius: 12px; padding: 56px 20px 20px 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
         .row-label-group { position: absolute; top: 8px; left: 15px; display: flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px); }
-        .row-label { font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
+        .row-label { width: 96px; flex-shrink: 0; text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--primary-blue); background: #eff6ff; padding: 2px 12px; border-radius: 20px; white-space: nowrap; }
 
         /* カレンダーバーのスタイル */
         .calendar-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; width: 100%; }
