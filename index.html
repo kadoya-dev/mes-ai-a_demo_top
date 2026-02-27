@@ -16,7 +16,20 @@
             --day-active: #8db3f0;
         }
         body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); }
-        .dashboard-container { max-width: 1100px; margin: 0 auto; }
+        .app-layout { display: flex; align-items: flex-start; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .menu-area {
+            width: 210px; background: var(--card-bg); border-radius: 12px; padding: 18px 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); position: sticky; top: 20px;
+        }
+        .menu-title { font-size: 0.75rem; color: var(--label-gray); font-weight: bold; margin-bottom: 10px; letter-spacing: 0.08em; }
+        .menu-btn {
+            width: 100%; border: 1px solid #dbeafe; background: #eff6ff; color: var(--primary-blue);
+            border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; font-weight: bold; text-align: left;
+            cursor: pointer; margin-bottom: 8px;
+        }
+        .menu-btn:last-child { margin-bottom: 0; }
+        .menu-btn:hover { background: #dbeafe; }
+        .dashboard-container { max-width: 1100px; flex: 1; }
         
         /* TOPエリア */
         .top-control-row {
@@ -91,6 +104,16 @@
 </head>
 <body>
 
+<div class="app-layout">
+    <nav class="menu-area" aria-label="メニュー">
+        <div class="menu-title">MENU</div>
+        <button class="menu-btn">TOP</button>
+        <button class="menu-btn">セラーリサーチ</button>
+        <button class="menu-btn">ASINリサーチ</button>
+        <button class="menu-btn">設定</button>
+        <button class="menu-btn">ログアウト</button>
+    </nav>
+
 <div class="dashboard-container">
     <div class="top-control-row">
         <div class="date-csv-group">
@@ -140,6 +163,7 @@
     </div>
 
     <div id="data-rows"></div>
+</div>
 </div>
 
 <div class="sim-controller">
