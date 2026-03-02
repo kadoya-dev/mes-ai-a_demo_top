@@ -169,6 +169,7 @@
             <div class="comment-content">
                 <div class="comment-text" id="txt-main">---</div>
                 <div class="comment-sub" id="txt-sub">---</div>
+                <div class="comment-sub" id="txt-pace">---</div>
             </div>
             <button class="btn-celebrate-circle" id="btn-party" onclick="celebrate()">🎉</button>
         </div>
@@ -271,6 +272,7 @@
         const btnParty = document.getElementById('btn-party');
         const saleGoalDay = 35000;
         const profitGoalDay = 10000;
+        const monthlyProfitTarget = 300000;
 
         let day, mSale, mProfit;
         const year = 2026;
@@ -336,7 +338,18 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
+        updatePaceComment(mProfit, day, monthlyProfitTarget);
         dataRows.innerHTML = html;
+    }
+
+    function updatePaceComment(currentProfit, day, monthlyProfitTarget) {
+        const daysInMonth = 31;
+        const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
+        const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
+        const paceText = pacePercent >= 100
+            ? `目標達成ペースです✨（${pacePercent}%）`
+            : `目標達成ペースまでもう少しです！🔥（${pacePercent}%）`;
+        document.getElementById('txt-pace').textContent = paceText;
     }
 
     function updatePigDisplay(id, amount) {
