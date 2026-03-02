@@ -338,18 +338,29 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
-        updatePaceComment(mProfit, day, monthlyProfitTarget);
+        updatePaceComment(mProfit, day, monthlyProfitTarget, pattern === 3);
         dataRows.innerHTML = html;
     }
 
-    function updatePaceComment(currentProfit, day, monthlyProfitTarget) {
+    function updatePaceComment(currentProfit, day, monthlyProfitTarget, isFinalDay) {
+        const paceEl = document.getElementById('txt-pace');
+
+        if (isFinalDay) {
+            paceEl.textContent = '';
+            paceEl.style.display = 'none';
+            return;
+        }
+
+        paceEl.style.display = 'block';
         const daysInMonth = 31;
         const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
         const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
         const paceText = pacePercent >= 100
             ? `目標達成ペースです✨（${pacePercent}%）`
-            : `目標達成ペースまでもう少しです！🔥（${pacePercent}%）`;
-        document.getElementById('txt-pace').textContent = paceText;
+            : (pacePercent === 0
+                ? `目標達成ペース（${pacePercent}%）`
+                : `目標達成ペースまでもうひと頑張りです🔥（${pacePercent}%）`);
+        paceEl.textContent = paceText;
     }
 
     function updatePigDisplay(id, amount) {
