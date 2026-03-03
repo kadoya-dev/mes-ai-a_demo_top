@@ -169,6 +169,7 @@
             <div class="comment-content">
                 <div class="comment-text" id="txt-main">---</div>
                 <div class="comment-sub" id="txt-sub">---</div>
+                <div class="comment-sub" id="txt-pace">---</div>
             </div>
             <button class="btn-celebrate-circle" id="btn-party" onclick="celebrate()">🎉</button>
         </div>
@@ -271,6 +272,7 @@
         const btnParty = document.getElementById('btn-party');
         const saleGoalDay = 35000;
         const profitGoalDay = 10000;
+        const monthlyProfitTarget = 300000;
 
         let day, mSale, mProfit;
         const year = 2026;
@@ -336,7 +338,43 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
+        updateCommentOrder(pattern === 2);
+        updatePaceComment(mProfit, day, monthlyProfitTarget, pattern === 3);
         dataRows.innerHTML = html;
+    }
+
+    function updateCommentOrder(isPaceBeforeSub) {
+        const commentContent = document.querySelector('.comment-content');
+        const txtSub = document.getElementById('txt-sub');
+        const txtPace = document.getElementById('txt-pace');
+
+        if (isPaceBeforeSub) {
+            commentContent.insertBefore(txtPace, txtSub);
+            return;
+        }
+
+        commentContent.appendChild(txtPace);
+    }
+
+    function updatePaceComment(currentProfit, day, monthlyProfitTarget, isFinalDay) {
+        const paceEl = document.getElementById('txt-pace');
+
+        if (isFinalDay) {
+            paceEl.textContent = '';
+            paceEl.style.display = 'none';
+            return;
+        }
+
+        paceEl.style.display = 'block';
+        const daysInMonth = 31;
+        const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
+        const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
+        const paceText = pacePercent >= 100
+            ? `目標達成ペースです✨（${pacePercent}%）`
+            : (pacePercent === 0
+                ? `目標達成ペース（${pacePercent}%）`
+                : `目標達成ペースまでもうひと頑張りです🔥（${pacePercent}%）`);
+        paceEl.textContent = paceText;
     }
 
     function updatePigDisplay(id, amount) {
