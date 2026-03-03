@@ -169,6 +169,7 @@
             <div class="comment-content">
                 <div class="comment-text" id="txt-main">---</div>
                 <div class="comment-sub" id="txt-sub">---</div>
+                <div class="comment-sub" id="txt-pace">---</div>
             </div>
             <button class="btn-celebrate-circle" id="btn-party" onclick="celebrate()">🎉</button>
         </div>
@@ -271,6 +272,7 @@
         const btnParty = document.getElementById('btn-party');
         const saleGoalDay = 35000;
         const profitGoalDay = 10000;
+        const monthlyProfitTarget = 300000;
 
         let day, mSale, mProfit;
         const year = 2026;
@@ -299,7 +301,7 @@
             document.getElementById('check-m').className = "status-item fail";
             commentBox.style.background = "#fff1f2"; commentBox.style.borderColor = "var(--accent-red)";
             document.getElementById('txt-main').textContent = "デイリー達成！ナイス巻き返しです！🔥";
-            document.getElementById('txt-sub').textContent = "この調子でリサーチを続け、貯金をプラスに戻しましょう。";
+            document.getElementById('txt-sub').textContent = "目標達成ペースまでもうひと頑張りです🔥";
             btnParty.style.display = "none";
             html += createRow("デイリー", 3, 3, 35000, 38000, 10000, 10500, 3000, 500, true, true, year, month);
             html += createRow("ウィークリー", 1, 7, 250000, 45000, 75000, 12000, 205000, 63000, false, false, year, month);
@@ -312,8 +314,8 @@
             document.getElementById('check-w').className = "status-item done";
             document.getElementById('check-m').className = "status-item fail";
             commentBox.style.background = "#fff1f2"; commentBox.style.borderColor = "var(--accent-red)";
-            document.getElementById('txt-main').textContent = "ウィークリー達成！デイリーもあと少し🔥";
-            document.getElementById('txt-sub').textContent = "この勢いでマンスリー目標へ向けてリサーチを強化しましょう。";
+            document.getElementById('txt-main').textContent = "マンスリー目標達成ペースです！";
+            document.getElementById('txt-sub').textContent = "";
             btnParty.style.display = "none";
             html += createRow("デイリー", 15, 15, 35000, 32000, 10000, 8500, 3000, 1500, false, false, year, month);
             html += createRow("ウィークリー", 15, 21, 250000, 275000, 75000, 82000, 25000, 7000, true, true, year, month);
@@ -336,7 +338,50 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
+        updateCommentOrder(pattern === 2 || pattern === 4);
+        updatePaceComment(pattern, mProfit, day, monthlyProfitTarget);
         dataRows.innerHTML = html;
+    }
+
+    function updateCommentOrder(isPaceBeforeSub) {
+        const commentContent = document.querySelector('.comment-content');
+        const txtSub = document.getElementById('txt-sub');
+        const txtPace = document.getElementById('txt-pace');
+
+        if (isPaceBeforeSub) {
+            commentContent.insertBefore(txtPace, txtSub);
+            return;
+        }
+
+        commentContent.appendChild(txtPace);
+    }
+
+    function updatePaceComment(pattern, currentProfit, day, monthlyProfitTarget) {
+        const paceEl = document.getElementById('txt-pace');
+
+        if (pattern === 3) {
+            paceEl.textContent = '';
+            paceEl.style.display = 'none';
+            return;
+        }
+
+        paceEl.style.display = 'block';
+        if (pattern === 1) {
+            paceEl.textContent = '現在は目標の0％達成見込みです。';
+            return;
+        }
+
+        if (pattern === 4) {
+            paceEl.textContent = '今のリサーチペースだと、目標の40％達成見込みです。';
+            return;
+        }
+
+        if (pattern === 2) {
+            const daysInMonth = 31;
+            const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
+            const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
+            paceEl.textContent = `今のリサーチペースだと、目標の${pacePercent}％を達成できます！`;
+        }
     }
 
     function updatePigDisplay(id, amount) {
