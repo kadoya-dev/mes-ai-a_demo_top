@@ -338,8 +338,22 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
+        updateCommentOrder(pattern === 2);
         updatePaceComment(mProfit, day, monthlyProfitTarget, pattern === 3);
         dataRows.innerHTML = html;
+    }
+
+    function updateCommentOrder(isPaceBeforeSub) {
+        const commentContent = document.querySelector('.comment-content');
+        const txtSub = document.getElementById('txt-sub');
+        const txtPace = document.getElementById('txt-pace');
+
+        if (isPaceBeforeSub) {
+            commentContent.insertBefore(txtPace, txtSub);
+            return;
+        }
+
+        commentContent.appendChild(txtPace);
     }
 
     function updatePaceComment(currentProfit, day, monthlyProfitTarget, isFinalDay) {
