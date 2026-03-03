@@ -301,7 +301,7 @@
             document.getElementById('check-m').className = "status-item fail";
             commentBox.style.background = "#fff1f2"; commentBox.style.borderColor = "var(--accent-red)";
             document.getElementById('txt-main').textContent = "デイリー達成！ナイス巻き返しです！🔥";
-            document.getElementById('txt-sub').textContent = "この調子でリサーチを続け、貯金をプラスに戻しましょう。";
+            document.getElementById('txt-sub').textContent = "目標達成ペースまでもうひと頑張りです🔥";
             btnParty.style.display = "none";
             html += createRow("デイリー", 3, 3, 35000, 38000, 10000, 10500, 3000, 500, true, true, year, month);
             html += createRow("ウィークリー", 1, 7, 250000, 45000, 75000, 12000, 205000, 63000, false, false, year, month);
@@ -338,8 +338,8 @@
 
         updatePigDisplay('val-pig-sale', mSale - (saleGoalDay * day));
         updatePigDisplay('val-pig-profit', mProfit - (profitGoalDay * day));
-        updateCommentOrder(pattern === 2);
-        updatePaceComment(mProfit, day, monthlyProfitTarget, pattern === 3);
+        updateCommentOrder(pattern === 2 || pattern === 4);
+        updatePaceComment(pattern, mProfit, day, monthlyProfitTarget);
         dataRows.innerHTML = html;
     }
 
@@ -356,25 +356,32 @@
         commentContent.appendChild(txtPace);
     }
 
-    function updatePaceComment(currentProfit, day, monthlyProfitTarget, isFinalDay) {
+    function updatePaceComment(pattern, currentProfit, day, monthlyProfitTarget) {
         const paceEl = document.getElementById('txt-pace');
 
-        if (isFinalDay) {
+        if (pattern === 3) {
             paceEl.textContent = '';
             paceEl.style.display = 'none';
             return;
         }
 
         paceEl.style.display = 'block';
-        const daysInMonth = 31;
-        const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
-        const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
-        const paceText = pacePercent >= 100
-            ? `目標達成ペースです✨（${pacePercent}%）`
-            : (pacePercent === 0
-                ? `目標達成ペース（${pacePercent}%）`
-                : `目標達成ペースまでもうひと頑張りです🔥（${pacePercent}%）`);
-        paceEl.textContent = paceText;
+        if (pattern === 1) {
+            paceEl.textContent = '現在は目標の0％達成見込みです。';
+            return;
+        }
+
+        if (pattern === 4) {
+            paceEl.textContent = '今のリサーチペースだと、目標の40％達成見込みです。';
+            return;
+        }
+
+        if (pattern === 2) {
+            const daysInMonth = 31;
+            const expectedProfit = (monthlyProfitTarget / daysInMonth) * day;
+            const pacePercent = expectedProfit === 0 ? 0 : Math.round((currentProfit / expectedProfit) * 100);
+            paceEl.textContent = `今のリサーチペースだと、目標の${pacePercent}％を達成できます！`;
+        }
     }
 
     function updatePigDisplay(id, amount) {
